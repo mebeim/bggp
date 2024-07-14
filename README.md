@@ -3,8 +3,8 @@
 My attempts and submissions for the [Binary Golf Grand Prix 5][bggp5]
 competition, which took place from June 21 2024 to September 6 2024.
 
-This reopsitory will be updated with my solutions and notes after the
-competition is over!
+This reopsitory will be updated with my solutions and notes soon, before the
+competition is over.
 
 ---
 
