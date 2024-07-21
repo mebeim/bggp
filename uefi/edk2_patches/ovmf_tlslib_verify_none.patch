@@ -1,0 +1,13 @@
+diff --git a/CryptoPkg/Library/TlsLib/TlsProcess.c b/CryptoPkg/Library/TlsLib/TlsProcess.c
+index 1b712cd452..d0227122a2 100644
+--- a/CryptoPkg/Library/TlsLib/TlsProcess.c
++++ b/CryptoPkg/Library/TlsLib/TlsProcess.c
+@@ -96,6 +96,8 @@ TlsDoHandshake (
+     return EFI_INVALID_PARAMETER;
+   }
+
++  SSL_set_verify (TlsConn->Ssl, SSL_VERIFY_NONE, NULL);
++
+   if ((BufferIn == NULL) && (BufferInSize == 0)) {
+     //
+     // If RequestBuffer is NULL and RequestSize is 0, and TLS session

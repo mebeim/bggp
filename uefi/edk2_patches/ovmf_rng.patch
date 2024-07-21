@@ -1,0 +1,16 @@
+diff --git a/OvmfPkg/OvmfPkgX64.dsc b/OvmfPkg/OvmfPkgX64.dsc
+index 1b90aa8f57..0af8469665 100644
+--- a/OvmfPkg/OvmfPkgX64.dsc
++++ b/OvmfPkg/OvmfPkgX64.dsc
+@@ -944,6 +944,11 @@
+   #
+   SecurityPkg/Hash2DxeCrypto/Hash2DxeCrypto.inf
+
++  #
++  # Ip4Dxe (and possibly others) needs RNG!
++  #
++  SecurityPkg/RandomNumberGenerator/RngDxe/RngDxe.inf
++
+   #
+   # Network Support
+   #
