@@ -88,7 +88,7 @@ HOLE1:
     PAD_CHECK HOLE1, 14
 ;_______________________________________________________________________________
 ;
-; At first glance it may look like BaseOfCode, BaseOfData and ImageBaaddse are
+; At first glance it may look like BaseOfCode, BaseOfData and ImageBase are
 ; usable. The EDK II loader indeed does not care about their value, but
 ; overwrites them with actual addresses, so they cannot be used.
 ;
@@ -342,7 +342,7 @@ ENTRY:
     mov    edx, esp
 
     ; Reuse Message structure for response. We previously set .BodyLength to 0,
-    ; so we can decrement a dword to make it 0xffffffff to avoid a longer MOV.
+    ; so we can decrement a dword to make it 0xffffffff avoiding a longer MOV.
     ;
     ; Message.BodyLength = 0xffffffff;
     ; Message.Body = alloca(0x78);

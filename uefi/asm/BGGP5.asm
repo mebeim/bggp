@@ -17,19 +17,19 @@
 ; ENTRY -> HOLE5 -> HOLE2 -> HOLE0 -> HOLE1 -> HOLE3 -> HOLE7 -> HOLE6 -> HOLE4 ;
 ;                                                                               ;
 ; This order minimizes the space used by JMP instructions as the distance       ;
-; between consecutive code blocks is always small enough to guarante a 2-byte   ;
+; between consecutive code blocks is always small enough to guarantee a 2-byte  ;
 ; JMP rel8 instruction.                                                         ;
 ;                                                                               ;
 ; Instructions are also placed optimally to fill the header holes and therefore ;
 ; minimize the amount of wasted space. This optimal instruction packing was     ;
-; calculated based on the code in BGGP5_Asm_v3.asm using the ../minimize.py     ;
-; Python 3 script.                                                              ;
+; calculated programmatically based on the code in BGGP5_Asm_v3.asm using the   ;
+; ../minimize.py Python 3 script.                                               ;
 ;                                                                               ;
 ; After the job is done, the application will jump into an infinite loop and    ;
 ; hang indefinitely. This is just to avoid crashing due to the lack of a proper ;
-; frame setup and restoring of callee-saved registers. In any case, as long as  ;
-; the file is downloaded and its content is displayed we still have a valid     ;
-; BGGP5 entry!                                                                  ;
+; stack frame setup and save/restore of callee-saved registers. In any case, as ;
+; long as the file is downloaded and its content is displayed we still have a   ;
+; valid BGGP5 entry!                                                            ;
 ;                                                                               ;
 ; See BGGP5_Asm_v3.asm for essentially the same code laid out linearly and with ;
 ; function prolog/epilog to perform clean return without hanging.               ;
@@ -127,7 +127,7 @@ HOLE1: ;<-----------------------------------------------------------------------
     PAD_CHECK HOLE1, 14                                                         ;   |       |
 ;_______________________________________________________________________________;   |       |
 ;                                                                               ;   ^       v
-; At first glance it may look like BaseOfCode, BaseOfData and ImageBaaddse are  ;   |       |
+; At first glance it may look like BaseOfCode, BaseOfData and ImageBase are     ;   |       |
 ; usable. The EDK II loader indeed does not care about their value, but         ;   |       |
 ; overwrites them with actual addresses, so they cannot be used.                ;   ^       v
 ;                                                                               ;   |       |
@@ -210,7 +210,7 @@ HOLE4: ;<-----------------------------------------------------------------------
     mov    edx, esp                                                             ;       |   |   ^
     ;                                                                           ;       |   v   |
     ; Reuse Message structure for response. We previously set .BodyLength to 0, ;       ^   |   |
-    ; so we can decrement a dword to make it 0xffffffff to avoid a longer MOV.  ;       |   |   ^
+    ; so we can decrement a dword to make it 0xffffffff avoiding a longer MOV.  ;       |   |   ^
     ;                                                                           ;       |   v   |
     ; Message.BodyLength = 0xffffffff;                                          ;       ^   |   |
     ; Message.Body = alloca(0x78);                                              ;       |   |   ^
@@ -246,135 +246,139 @@ HOLE4: ;<-----------------------------------------------------------------------
 ; EFI_IMAGE_DIRECTORY_ENTRY_{EXPORT,IMPORT,RESOURCE,EXCEPTION} can be whatever. ;       |   |   ^
 ;                                                                               ;       |   v   |
 HOLE5: ;<---------------------------------------------------------------------------o   ^   |   |
-    ;                                                                           ;   |   |   |   ^
-    ; Locate the HttpServiceBinding protocol. Pass as stack pointer for output. ;   |   |   v   |
-    ;                                                                           ;   ^   ^   |   |
-    ; gBS->LocateProtocol(&gEfiHttpServiceBindingProtocolGuid, NULL,            ;   |   |   |   ^
+    ;                                                                           ;   ^   |   |   ^
+    ; Locate the HttpServiceBinding protocol. Pass a stack pointer for output.  ;   |   |   v   |
+    ;                                                                           ;   |   ^   |   |
+    ; gBS->LocateProtocol(&gEfiHttpServiceBindingProtocolGuid, NULL,            ;   ^   |   |   ^
     ;                     &HttpServiceBinding);                                 ;   |   |   v   |
-    xor    edx, edx                                                             ;   ^   ^   |   |
-    mov    r8, rsp ; &HttpServiceBinding                                        ;   |   |   |   ^
+    xor    edx, edx                                                             ;   |   ^   |   |
+    mov    r8, rsp ; &HttpServiceBinding                                        ;   ^   |   |   ^
     call   [rbx - 0x78 + STRUCT_EFI_BOOT_SERVICES.OffLocateProtocol]            ;   |   |   v   |
-    ;                                                                           ;   ^   ^   |   |
-    ; Each time we make a call, assuming it succeeds, RAX will be set to 0      ;   |   |   |   ^
+    ;                                                                           ;   |   ^   |   |
+    ; Each time we make a call, assuming it succeeds, RAX will be set to 0      ;   ^   |   |   ^
     ; (EFI_SUCCESS). Most of the following code makes this assumption to save   ;   |   |   v   |
-    ; XOR EAX,EAX instructions. The first example is right here where we do a   ;   ^   ^   |   |
-    ; PUSH RAX to push a NULL ptr.                                              ;   |   |   |   ^
+    ; XOR EAX,EAX instructions. The first example is right here where we do a   ;   |   ^   |   |
+    ; PUSH RAX to push a NULL ptr.                                              ;   ^   |   |   ^
     ;                                                                           ;   |   |   v   |
-    ; Create child handle. Pass RDI data pointer for output. This will          ;   ^   ^   |   |
-    ; overwrite gEfiHttpServiceBindingProtocolGuid, but we already used it so   ;   |   |   |   ^
+    ; Create child handle. Pass RDI data pointer for output. This will          ;   |   ^   |   |
+    ; overwrite gEfiHttpServiceBindingProtocolGuid, but we already used it so   ;   ^   |   |   ^
     ; it's fine.                                                                ;   |   |   v   |
-    ;                                                                           ;   ^   ^   |   |
-    ; HttpChildHandle = NULL;                                                   ;   |   |   |   ^
+    ;                                                                           ;   |   ^   |   |
+    ; HttpChildHandle = NULL;                                                   ;   ^   |   |   ^
     ; HttpServiceBinding->CreateChild(HttpServiceBinding, &HttpChildHandle);    ;   |   |   v   |
-    mov    ecx, [rsp]                                                           ;   ^   ^   |   |
-    push   rax                                                                  ;   |   |   |   ^
+    mov    ecx, [rsp]                                                           ;   |   ^   |   |
+    push   rax                                                                  ;   ^   |   |   ^
     mov    edx, esp ; &HttpChildHandle                                          ;   |   |   v   |
-    call   [rcx + STRUCT_EFI_SERVICE_BINDING_PROTOCOL.OffCreateChild]           ;   ^   ^   |   |
-    ;                                                                           ;   |   |   |   ^
+    call   [rcx + STRUCT_EFI_SERVICE_BINDING_PROTOCOL.OffCreateChild]           ;   |   ^   |   |
+    ;                                                                           ;   ^   |   |   ^
     ; Args for gBS->HandleProtocol(). Pass RDI data pointer for output. We will ;   |   |   v   |
-    ; overwrite gEfiHttpProtocolGuid, but only after reading it to resolve the  ;   ^   ^   |   |
-    ; protocol, so it's fine.                                                   ;   |   |   |   ^
+    ; overwrite gEfiHttpProtocolGuid, but only after reading it to resolve the  ;   |   ^   |   |
+    ; protocol, so it's fine.                                                   ;   ^   |   |   ^
     mov    ecx, [rsp]                                                           ;   |   |   v   |
-    add    edi, gEfiHttpProtocolGuid - gEfiHttpServiceBindingProtocolGuid       ;   ^   ^   |   |
-    mov    edx, edi                                                             ;   |   |   |   ^
+    add    edi, gEfiHttpProtocolGuid - gEfiHttpServiceBindingProtocolGuid       ;   |   ^   |   |
+    mov    edx, edi                                                             ;   ^   |   |   ^
     mov    r8, rdi                                                              ;   |   |   v   |
     jmp    HOLE2 ;>-----------------------------------------------------------------+---o   |   |
-    PAD_CHECK HOLE5, 32                                                         ;   |       |   ^
+    PAD_CHECK HOLE5, 32                                                         ;   ^       |   ^
 ;_______________________________________________________________________________;   |       v   |
-;                                                                               ;   ^       |   |
-; These two are needed and checked. We cannot overlap the end of the PE OPT     ;   |       |   ^
+;                                                                               ;   |       |   |
+; These two are needed and checked. We cannot overlap the end of the PE OPT     ;   ^       |   ^
 ; header with the start of the section header (i.e. pe_opt_header_end label     ;   |       v   |
-; must come before section_header label).                                       ;   ^       |   |
-;                                                                               ;   |       |   ^
+; must come before section_header label).                                       ;   |       |   |
+;                                                                               ;   ^       |   ^
     dq 0                                 ; EFI_IMAGE_DIRECTORY_ENTRY_SECURITY   ;   |       v   |
-    dq 0                                 ; EFI_IMAGE_DIRECTORY_ENTRY_BASERELOC  ;   ^       |   |
-pe_opt_header_end:                                                              ;   |       |   ^
+    dq 0                                 ; EFI_IMAGE_DIRECTORY_ENTRY_BASERELOC  ;   |       |   |
+pe_opt_header_end:                                                              ;   ^       |   ^
 ;_______________________________________________________________________________;   |       v   |
-section_header:                                                                 ;   ^       |   |
-;                                                                               ;   |       |   ^
+section_header:                                                                 ;   |       |   |
+;                                                                               ;   ^       |   ^
 ; We can stuff some code inside the section Name[], which is ignored            ;   |       v   |
-;                                                                               ;   ^       |   |
+;                                                                               ;   |       |   |
 HOLE6: ;<---------------------------------------------------------------------------+---o   |   ^
     ; Finish allocating EFI_HTTP_MESSAGE on stack.                              ;   |   ^   v   |
-    ;                                                                           ;   ^   |   |   |
-    ; Message.HeaderCount  = 1UL;                                               ;   |   |   |   ^
+    ;                                                                           ;   |   |   |   |
+    ; Message.HeaderCount  = 1UL;                                               ;   ^   |   |   ^
     ; Message.Data.Request = &ReqData;                                          ;   |   ^   v   |
-    inc    eax                                                                  ;   ^   |   |   |
-    push   rax                                                                  ;   |   |   |   ^
+    inc    eax                                                                  ;   |   |   |   |
+    push   rax                                                                  ;   ^   |   |   ^
     push   rcx                                                                  ;   |   ^   v   |
-    ;                                                                           ;   ^   |   |   |
-    ; Allocate EFI_HTTP_TOKEN Token = {                                         ;   |   |   |   ^
+    ;                                                                           ;   |   |   |   |
+    ; Allocate EFI_HTTP_TOKEN Token = {                                         ;   ^   |   |   ^
     ;     .Event   = (void *)1,                                                 ;   |   ^   v   |
-    ;     .Status  = 1UL,                                                       ;   ^   |   |   |
-    ;     .Message = &Message                                                   ;   |   |   |   ^
+    ;     .Status  = 1UL,                                                       ;   |   |   |   |
+    ;     .Message = &Message                                                   ;   ^   |   |   ^
     ; };                                                                        ;   |   ^   v   |
-    ;                                                                           ;   ^   |   |   |
-    ; The .Status field is unchecked so it can be any value. Since we           ;   |   |   |   ^
+    ;                                                                           ;   |   |   |   |
+    ; The .Status field is unchecked so it can be any value. Since we           ;   ^   |   |   ^
     ; incremented RAX above it will be 1. We are missing one PUSH for .Event,   ;   |   ^   v   |
-    ; it's done after the JMP.                                                  ;   ^   |   |   |
-    push   rsp                                                                  ;   |   |   |   ^
+    ; it's done after the JMP.                                                  ;   |   |   |   |
+    push   rsp                                                                  ;   ^   |   |   ^
     push   rax                                                                  ;   |   ^   v   |
     jmp    HOLE4 ;>-----------------------------------------------------------------+---+---+---o
-    PAD_CHECK HOLE6, 8                                                          ;   |   |   |
+    PAD_CHECK HOLE6, 8                                                          ;   ^   |   |
 ;_______________________________________________________________________________;   |   ^   v
-;                                                                               ;   ^   |   |
-; Here we set VirtualSize = SizeOfRawData + 0x400 to let the loader zero-out    ;   |   |   |
+;                                                                               ;   |   |   |
+; Here we set VirtualSize = SizeOfRawData + 0x400 to let the loader zero-out    ;   ^   |   |
 ; memory past the end of the file for us. This saves 1 zero byte at the end of  ;   |   ^   v
-; the file for the asciiUrl string.                                             ;   ^   |   |
-;                                                                               ;   |   |   |
+; the file for the asciiUrl string.                                             ;   |   |   |
+;                                                                               ;   ^   |   |
     dd END - ENTRY + 0x400 ; VirtualSize                                        ;   |   ^   v
-    dd ENTRY               ; VirtualAddress                                     ;   ^   |   |
-    dd END - ENTRY         ; SizeOfRawData                                      ;   |   |   |
+    dd ENTRY               ; VirtualAddress                                     ;   |   |   |
+    dd END - ENTRY         ; SizeOfRawData                                      ;   ^   |   |
     dd ENTRY               ; PointerToRawData                                   ;   |   ^   v
-;_______________________________________________________________________________;   ^   |   |
-;                                                                               ;   |   |   |
+;_______________________________________________________________________________;   |   |   |
+;                                                                               ;   ^   |   |
 ; PointerTo{Relocations,Linenumbers}, NumberOf{Relocations,Linenumbers} and     ;   |   ^   v
-; Characteristics can be whatever.                                              ;   ^   |   |
-;                                                                               ;   |   |   |
+; Characteristics can be whatever.                                              ;   |   |   |
+;                                                                               ;   ^   |   |
 HOLE7: ;<---------------------------------------------------------------------------+---+---o
-    ;                                                                           ;   ^   |
-    ; Allocate EFI_HTTP_HEADER and save a pointer to it in RDX for later use    ;   |   |
+    ;                                                                           ;   |   |
+    ; Allocate EFI_HTTP_HEADER and save a pointer to it in RDX for later use    ;   ^   |
     ; in EFI_HTTP_MESSAGE.                                                      ;   |   ^
-    ;                                                                           ;   ^   |
-    ; EFI_HTTP_HEADER Header = {                                                ;   |   |
+    ;                                                                           ;   |   |
+    ; EFI_HTTP_HEADER Header = {                                                ;   ^   |
     ;     .FieldName  = "Host",                                                 ;   |   ^
-    ;     .FieldValue = "binary.golf"                                           ;   ^   |
-    ; };                                                                        ;   |   |
+    ;     .FieldValue = "binary.golf"                                           ;   |   |
+    ; };                                                                        ;   ^   |
     sub    edi, utf16UrlMinus1 + 1 + 2 * URL_SIZE - strHostHeaderValue          ;   |   ^
-    push   rdi                                                                  ;   ^   |
-    add    edi, strHostHeaderName - strHostHeaderValue                          ;   |   |
+    push   rdi                                                                  ;   |   |
+    add    edi, strHostHeaderName - strHostHeaderValue                          ;   ^   |
     push   rdi                                                                  ;   |   ^
-    mov    edx, esp                                                             ;   ^   |
-    ;                                                                           ;   |   |
+    mov    edx, esp                                                             ;   |   |
+    ;                                                                           ;   ^   |
     ; Allocate first part of EFI_HTTP_MESSAGE. Since we are doing a GET and we  ;   |   ^
-    ; set Message.BodyLength = 0, overlap the ignored Message.Body field with   ;   ^   |
-    ; the previously pushed Header.FieldName to save a PUSH.                    ;   |   |
+    ; set Message.BodyLength = 0, overlap the ignored Message.Body field with   ;   |   |
+    ; the previously pushed Header.FieldName to save a PUSH.                    ;   ^   |
     ;                                                                           ;   |   ^
-    ; Save RSI = &Message.BodyLength to modify and re-use the struct later.     ;   ^   |
-    ;                                                                           ;   |   |
+    ; Save RSI = &Message.BodyLength to modify and re-use the struct later.     ;   |   |
+    ;                                                                           ;   ^   |
     ; EFI_HTTP_MESSAGE Message = {                                              ;   |   ^
-    ;     /* First 2 fields pushed later after JMP... */                        ;   ^   |
-    ;     .Headers      = &Header,                                              ;   |   |
+    ;     /* First 2 fields pushed later after JMP... */                        ;   |   |
+    ;     .Headers      = &Header,                                              ;   ^   |
     ;     .BodyLength   = 0UL,                                                  ;   |   ^
-    ;     .Body         = "Host"    // Overlaps with Header.FieldName           ;   ^   |
-    ; };                                                                        ;   |   |
+    ;     .Body         = "Host"    // Overlaps with Header.FieldName           ;   |   |
+    ; };                                                                        ;   ^   |
     push   rax       ; BodyLength                                               ;   |   ^
-    mov    esi, esp  ; RSI = &Message.BodyLength                                ;   ^   |
-    push   rdx       ; Headers                                                  ;   |   |
+    mov    esi, esp  ; RSI = &Message.BodyLength                                ;   |   |
+    push   rdx       ; Headers                                                  ;   ^   |
     jmp    HOLE6 ;>-----------------------------------------------------------------+---o
-    PAD_CHECK HOLE7, 16                                                         ;   ^
-;_______________________________________________________________________________;   |
+    PAD_CHECK HOLE7, 16                                                         ;   |
+;_______________________________________________________________________________;   ^
 headers_end:                                                                    ;   |
-;                                                                               ;   ^
 ;                                                                               ;   |
+;                                                                               ;   ^
 ;======[ ENTRY POINT ]==========================================================;   |
-;                                                                               ;   ^
-; We cannot overlap the section headers with the entry point. The former must   ;   |
-; come first entirely. We can however jump back into section/PE headers. Since  ;   |
-; the code is so short, it fits entirely in the holes in the headers, so this   ;   ^
-; is the only instruction we need past the headers!                             ;   |
 ;                                                                               ;   |
-ENTRY:                                                                          ;   ^
+; We cannot overlap the section headers with the entry point. The former must   ;   ^
+; come first entirely. We can however jump back into section/PE headers. Since  ;   |
+; the code is so short, it mostly fits in the holes in the headers, so these    ;   |
+; are the only few instructions we need past the headers!                       ;   ^
+;                                                                               ;   |
+ENTRY:                                                                          ;   |
+    ;                                                                           ;   ^
+    ; EDK II runs in 64-bit x86 long mode with 4-level paging, but page tables  ;   |
+    ; are set up to provide identity mapping between VA and PA. All the actual  ;   |
+    ; addresses we work with are small enough to fit in 32bit registers.        ;   ^
     ;                                                                           ;   |
     ; Use callee-saved RBX to hold BootServices and advance it by 0x78 to save  ;   |
     ; 3 bytes on the encoding of a CALL [RBX + OFF] later. The ADD here is also ;   ^
