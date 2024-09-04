@@ -4,7 +4,7 @@ Run with `go run file.go` except for special cases (see notes below). Tested
 with Go 1.22.3 linux/amd64 on Debian 12.
 
 | File                                                           | Source size | Notes                                             |
-|----------------------------------------------------------------|-------------|---------------------------------------------------|
+|:---------------------------------------------------------------|:------------|:--------------------------------------------------|
 | [`cgo_system_curl_env_trick.go`](cgo_system_curl_env_trick.go) | 63 bytes    | Needs special setup (see below). Uses [cgo][cgo]. |
 | [`cgo_system_curl_pwd_trick.go`](cgo_system_curl_pwd_trick.go) | 76 bytes    | Needs special setup (see below). Uses [cgo][cgo]. |
 | [`cgo_system_curl.go`](cgo_system_curl.go)                     | 84 bytes    | Needs `curl` installed. Uses [cgo][cgo].          |

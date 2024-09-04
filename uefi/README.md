@@ -10,7 +10,7 @@ To build and run the apps, check the [Building](#building) and
 reading on!
 
 | File                                                 | Compiled size | Notes |
-|------------------------------------------------------|---------------|-------|
+|:-----------------------------------------------------|:--------------|:------|
 | [`asm/BGGP5.asm`](asm/BGGP5.asm)                     | 316 bytes     | Will hang in an infinite loop after doing its job. |
 | [`asm/BGGP5_Asm_v3.asm`](asm/BGGP5_Asm_v3.asm)       | 452 bytes     | |
 | [`asm/BGGP5_Asm_v2.asm`](asm/BGGP5_Asm_v2.asm)       | 700 bytes     | |

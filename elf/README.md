@@ -17,7 +17,7 @@ and the NASM x86 assembler. Tested on Debian 12 x86_64 with Linux kernel
 6.1.0-22-amd64.
 
 | File                                        | ELF kind                    | Compiled size | Notes           |
-|---------------------------------------------|-----------------------------|---------------|-----------------|
+|:--------------------------------------------|:----------------------------|:--------------|:----------------|
 | [`exec_i386/exec_curl_needs_arg.asm`][0]    | 32bit ET_EXEC, Linux x86    | 76 bytes      | *(1), (3)*      |
 | [`exec_i386/exec_curl_short_url_v2.asm`][1] | 32bit ET_EXEC, Linux x86    | 82 bytes      | *(1), (4), (x)* |
 | [`exec_i386/exec_curl_short_url_v1.asm`][2] | 32bit ET_EXEC, Linux x86    | 86 bytes      | *(1), (4), (x)* |

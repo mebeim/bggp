@@ -4,7 +4,7 @@ Tested with PHP 7.4.33 and 8.3.9 inside Docker
 (e.g. `docker run --rm -it php:8 bash`).
 
 | File                     | Source size |
-|--------------------------|-------------|
+|:-------------------------|:------------|
 | [`BGGP5.php`](BGGP5.php) | 26 bytes    |
 
 Note that the file misses the final newline character. This is intended to save
