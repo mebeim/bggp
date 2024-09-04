@@ -13,6 +13,11 @@ with Go 1.22.3 linux/amd64 on Debian 12.
 Note that these files all miss the final newline character. This is intended to
 save space!
 
+Since I know that Go can include C source code in its own source through
+comments (see [cgo][cgo] doc), I took the chance to make a very small Go
+programs that abuse this to call [`system(3)`][man3system] directly, without the
+need of any Go code or syntactic sugar.
+
 Important notes for some special cases:
 
 - **`cgo_system_curl_env_trick.go`**:
@@ -46,3 +51,4 @@ Important notes for some special cases:
 
 
 [cgo]: https://go.dev/wiki/cgo
+[man3system]: https://manned.org/man/system
