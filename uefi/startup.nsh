@@ -22,13 +22,19 @@ load TlsDxe.efi
 load HttpDxe.efi
 load HttpUtilitiesDxe.efi
 
-echo ~
+echo -on
+ifconfig -l
+echo -off
+
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 echo You should see all "Success" messages above
 echo ~
 echo Now wait for eth0 to get a DHCP lease... should take max 5s
 echo Check with the ifconfig command (see 'help ifconfig')
-echo When it gets one you can run my BGGP5 UEFI app
+echo When it gets one you can run the BGGP5* apps
 echo ~
 echo The TAB key works for auto completion
-echo Use CTRL+H for backspace and CTRL+C to exit when done
+echo Use CTRL+H for backspace
+echo Use CTRL+C to exit when you are done
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 echo -on

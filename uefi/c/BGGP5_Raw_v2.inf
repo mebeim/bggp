@@ -1,0 +1,39 @@
+## @file
+#  BGGP5 UEFI Application - https://binary.golf/5/
+#
+#  Downloads and displays the contents of the file at https://binary.golf/5/5
+#  using raw EFI HTTP protocol.
+#
+#  Copyright (c) 2024, Marco BOnelli. All rights reserved.
+#  SPDX-License-Identifier: MIT
+#
+##
+
+[Defines]
+  INF_VERSION    = 0x00010005
+  BASE_NAME      = BGGP5_Raw_v2
+  FILE_GUID      = 6E57CC9A-AAD1-4973-8C7A-C370C0B968FB
+  MODULE_TYPE    = UEFI_APPLICATION
+  VERSION_STRING = 1.0
+  ENTRY_POINT    = UefiMain
+
+[Sources]
+  BGGP5_Raw_v2.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  NetworkPkg/NetworkPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  PrintLib
+  UefiApplicationEntryPoint
+  UefiBootServicesTableLib
+  UefiLib
+
+[Protocols]
+  gEfiManagedNetworkServiceBindingProtocolGuid
+  gEfiHttpServiceBindingProtocolGuid
+  gEfiHttpProtocolGuid

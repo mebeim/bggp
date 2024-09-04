@@ -44,19 +44,47 @@ RUN bash -c '\
 		-D NETWORK_TLS_ENABLE=TRUE'
 
 #
+# Copy and build BGGP5 EFI apps (done here after a first build for faster
+# re-building when the files are changed).
+#
+
+# Patch OvmfPkgX64.dsc to also compile my BGGP5 EFI apps
+RUN --mount=type=bind,source=edk2_patches/,target=/patches \
+	git apply --ignore-whitespace /patches/bggp5_ovmf_include_apps.patch
+
+# Copy BGGP5 EFI Apps into EDK II source as part of OvmfPkg
+COPY c/*.c OvmfPkg/BGGP5/
+COPY c/*.inf OvmfPkg/BGGP5/
+
+# Build BGGP5 C EFI Apps that use EDK II framework
+RUN bash -c '\
+source edksetup.sh && \
+make -j -C BaseTools && \
+build -p OvmfPkg/OvmfPkgX64.dsc -a X64 -t GCC5 -b RELEASE -n 0 \
+	-D NETWORK_HTTP_ENABLE=TRUE \
+	-D NETWORK_ALLOW_HTTP_CONNECTIONS=TRUE \
+	-D NETWORK_TLS_ENABLE=TRUE'
+
+# Build BGGP5 hand-crafted ASM EFI Apps that only need NASM
+COPY asm/ /build/asm
+RUN make -C /build/asm
+
+#
 # Copy build output to standalone container to be easily extracted
 #
 
 RUN mkdir -p /output
 WORKDIR /build/edk2
 
-# Copy OVMF code, OVMF vars and EFI drivers
+# Copy OVMF code, OVMF vars, EFI drivers and BGGP5 EFI Apps
 RUN bash -c '\
 	cd Build/OvmfX64/RELEASE_GCC5 && \
 	cp FV/OVMF_{CODE,VARS}.fd /output && \
-	cp X64/{Snp,Mnp,Arp,Rng,Ip4,Dhcp4,Udp4,Dns,Tcp,Tls,Http,HttpUtilities}Dxe.efi /output'
+	cp X64/{Snp,Mnp,Arp,Rng,Ip4,Dhcp4,Udp4,Dns,Tcp,Tls,Http,HttpUtilities}Dxe.efi /output && \
+	cp X64/BGGP5*.efi /output && \
+	cp /build/asm/*.efi /output'
 
-# Also add the UEFI shell startup script
+# Also add the UEFI shell startup script, just in case
 COPY startup.nsh /output/
 
 FROM scratch AS release

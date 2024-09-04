@@ -1,0 +1,20 @@
+diff --git a/OvmfPkg/OvmfPkgX64.dsc b/OvmfPkg/OvmfPkgX64.dsc
+index 0af8469665..302e61b8a1 100644
+--- a/OvmfPkg/OvmfPkgX64.dsc
++++ b/OvmfPkg/OvmfPkgX64.dsc
+@@ -949,6 +949,15 @@
+   #
+   SecurityPkg/RandomNumberGenerator/RngDxe/RngDxe.inf
+
++  #
++  # My BGGP5 Apps
++  #
++  OvmfPkg/BGGP5/BGGP5_HttpIoLib.inf
++  OvmfPkg/BGGP5/BGGP5_Raw_v1.inf
++  OvmfPkg/BGGP5/BGGP5_Raw_v2.inf
++  OvmfPkg/BGGP5/BGGP5_Raw_v3.inf
++  OvmfPkg/BGGP5/BGGP5_Raw_v4.inf
++
+   #
+   # Network Support
+   #
