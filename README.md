@@ -26,8 +26,16 @@ goal: download and display the contents of the file at
 
 I wrote various UEFI applications and tested them on QEMU with [EDK II][edk2]
 OVMF firmware. You can see the different iterations, which are all commented.
-These apps use the UEFI HTTP(S) protocol to download download the file at
-`https://binary.golf/5/` to memory and display it.
+These apps use the UEFI HTTP(S) protocol to download the file at
+`https://binary.golf/5/5` to memory and display it.
+
+I configured and built the OVMF firmware from EDK II source code to hav HTTPS
+support. It was a bit of a pain to get the network stack and TLS working
+properly because for some reason some domains were not passing the TLS handshake
+verification (is that a bug in the implementation?), so in the end I opted to
+disable TLS handshake verification at build time (like you would do with
+`curl --insecure`). The connection is still HTTPS, but the server certificate is
+not actually verified.
 
 Some of the programs are written in C using the EDK II C APIs, while others are
 carefully hand-crafted using NASM assembler syntax and x86 assembly operations.
