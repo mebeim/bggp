@@ -5,7 +5,7 @@
 FROM debian:12 AS builder
 
 ARG EDK2_BUILD_TYPE=RELEASE
-ARG EDK2_TAG=edk2-stable202405
+ARG EDK2_TAG=edk2-stable202411
 
 #
 # Build dependencies

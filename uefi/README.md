@@ -407,12 +407,13 @@ following configuration:
     --disable-werror
 ```
 
-*One small caveat: don't use a terminal window that is too tall or the EDK II
-UEFI shell may overwrite output lines with the prompt, making things harder to
-read. 30 lines of height works fine for me.*
+*One small caveat: **don't use a terminal window that is too tall** or the EDK
+II UEFI shell may overwrite output lines with the prompt, making things harder
+to read. 30 lines of height works fine for me.*
 
 Use the [`./run.sh`](./run.sh) Bash script after building to run the OVMF
-firmware using QEMU. After QEMU starts and iPXE starts the UEFI shell, the
+firmware using QEMU (remember to have it in your path if you are using a custom
+QEMU build like above). After QEMU starts and iPXE starts the UEFI shell, the
 [`startup.nsh`](startup.nsh) UEFI shell script will automatically load the UEFI
 network drivers (`*Dxe.efi`) and request a DHCP lease for `eth0`. **Wait for it
 to get a lease** checking with the command `ifconfig -l`, then run the
